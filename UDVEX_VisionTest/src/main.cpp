@@ -3,21 +3,6 @@
 // [Name]               [Type]        [Port(s)]
 // Vision10             vision        10              
 // ---- END VEXCODE CONFIGURED DEVICES ----
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// Vision10             vision        10              
-// ---- END VEXCODE CONFIGURED DEVICES ----
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// Vision10             vision        10              
-// ---- END VEXCODE CONFIGURED DEVICES ----
-// ---- START VEXCODE CONFIGURED DEVICES ----
-// Robot Configuration:
-// [Name]               [Type]        [Port(s)]
-// Vision10             vision        10              
-// ---- END VEXCODE CONFIGURED DEVICES ----
 /*----------------------------------------------------------------------------*/
 /*                                                                            */
 /*    Module:       main.cpp                                                  */
@@ -59,6 +44,9 @@ motor roller = motor(PORT3, GREEN_GEAR_CART, false);
 
 motor launcher = motor(PORT2, GREEN_GEAR_CART, false);
 
+motor stringLauncher = motor(PORT6, GREEN_GEAR_CART, false);
+
+
 motor rear_left_motor = motor(PORT11, GREEN_GEAR_CART, false);
 motor front_left_motor = motor(PORT12, GREEN_GEAR_CART, false);
 motor_group left_motor_group = motor_group(rear_left_motor, front_left_motor);
@@ -94,6 +82,9 @@ drivetrain drive_train = drivetrain(
 void pre_auton(void) {
   my_brain.Screen.print("Pre-Autonomous start!");
   my_brain.Screen.newLine();
+
+  stringLauncher.setBrake(hold);
+
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
@@ -157,6 +148,9 @@ void usercontrol(void) {
   bool is_roller_stopped = true;
   bool is_left_stopped = true;
   bool is_right_stopped = true;
+  bool is_string_launched = false;
+
+  float stringDegrees;
 
   //intake.setVelocity(100, percent); Changed to Voltage
   
@@ -229,6 +223,20 @@ void usercontrol(void) {
       is_roller_stopped = true;
     }
 
+    // String Launcher Controls
+    
+    if (primary_controller.ButtonUp.pressing() && primary_controller.ButtonDown.pressing()) {
+      //stringDegrees = stringLauncher.position(degrees);
+      stringLauncher.spin(fwd,12.0,voltageUnits::volt);
+      //stringLauncher.spinToPosition(stringDegrees + 60,rotationUnits::deg,true);
+      is_string_launched = true;
+      wait(1,sec);
+      stringLauncher.stop();
+    } 
+    else if(is_string_launched){
+      //stringLauncher.spinToPosition(stringDegrees - 60,rotationUnits::deg,false);
+    }
+
     checkBlue.broadcastAndWait();
     checkRed.broadcastAndWait();
     checkGreen.broadcastAndWait();
@@ -268,15 +276,15 @@ void hasRedCallback() {
 }
 
 void hasGreenCallback() {
-  Brain.Screen.setFont(mono40);
-  Brain.Screen.clearLine(5, black);
-  Brain.Screen.setCursor(Brain.Screen.row(), 1);
-  Brain.Screen.setCursor(5, 1);
+  //Brain.Screen.setFont(mono40);
+  //Brain.Screen.clearLine(5, black);
+  //Brain.Screen.setCursor(Brain.Screen.row(), 1);
+  //Brain.Screen.setCursor(5, 1);
   Vision10.takeSnapshot(Vision10__GREENBOX);
   if (Vision10.objectCount > 0) {
-    Brain.Screen.print("Green Object Found");
+    //Brain.Screen.print("Green Object Found");
   } else {
-    Brain.Screen.print("No Green Object");
+    //Brain.Screen.print("No Green Object");
   }
 }
 
@@ -307,12 +315,16 @@ void hasYellowCallback() {
         right_motor_group.spin(reverse);
         left_motor_group.setVelocity(50, percent);
         left_motor_group.spin(forward);
+      } else {
+        //right_motor_group.stop();
+        //left_motor_group.stop();
+        /*right_motor_group.setVelocity(75, percent);
+        right_motor_group.spin(reverse);
+        left_motor_group.setVelocity(75, percent);
+        left_motor_group.spin(forward);*/
       }
 
     }
-
-    right_motor_group.stop();
-    left_motor_group.stop();
   } else {
     Brain.Screen.print("No Yellow Disk Found");
   }
